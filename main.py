@@ -28,11 +28,11 @@ for csv_filename, data in csv_processor.files_data.items():
         <h1>{filename}</h1>
         <h2>Top 10 Highest Highs</h2>
         <ul>
-            {''.join([f"<li>Date: {high[0]}, Value: {high[1]}</li>" for high in top_10_high[csv_filename]])}
+            {''.join([f"<li>Date: {high[0]}, Time: {high[1]}, Value: {high[2]}</li>" for high in top_10_high[csv_filename]])}
         </ul>
         <h2>Top 10 Lowest Lows</h2>
         <ul>
-            {''.join([f"<li>Date: {low[0]}, Value: {low[1]}</li>" for low in top_10_low[csv_filename]])}
+            {''.join([f"<li>Date: {low[0]}, Time: {low[1]}, Value: {low[2]}</li>" for low in top_10_low[csv_filename]])}
         </ul>
 
         <h2>Statistical Summary</h2>
@@ -55,7 +55,6 @@ for csv_filename, data in csv_processor.files_data.items():
     try:
         with open(html_filepath, "w", encoding="utf-8") as file:
             file.write(html_content)
-        print(filename + " HTML File Created")
         links.append(f'<li><a href="{html_filename}">{filename}</a></li>')
     except:
         print("HTML File Creation Failed")
