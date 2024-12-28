@@ -1,5 +1,6 @@
 import os
 import webbrowser
+import csv
 
 csv_folder = "csv"
 html_folder = "html"
@@ -10,8 +11,17 @@ links = []
 for csv_filename in os.listdir(csv_folder):
     if csv_filename.endswith(".csv"):
         csv_filepath = os.path.join(csv_folder, csv_filename)
-
         filename = csv_filename.replace(".csv", "")
+
+        with open(csv_filepath, 'r', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            rows = [row for row in reader]
+
+            high_values = [(row['Date'], float(row['High'])) for row in rows]
+            low_values = [(row['Date'], float(row['Low'])) for row in rows]
+
+            top_10_high = sorted(high_values, key=lambda x: x[1], reverse=True)[:10]
+            top_10_low = sorted(low_values, key=lambda x: x[1])[:10]
 
         html_content = f"""<!doctype html>
 <html>
@@ -21,6 +31,14 @@ for csv_filename in os.listdir(csv_folder):
 </head>
 <body>
     <h1>{filename}</h1>
+    <h2>Top 10 Highest Highs</h2>
+    <ul>
+        {''.join([f"<li>Date: {high[0]}, Value: {high[1]}</li>" for high in top_10_high])}
+    </ul>
+    <h2>Top 10 Lowest Lows</h2>
+    <ul>
+        {''.join([f"<li>Date: {low[0]}, Value: {low[1]}</li>" for low in top_10_low])}
+    </ul>
 </body>
 </html>
         """
@@ -34,6 +52,7 @@ for csv_filename in os.listdir(csv_folder):
             links.append(f'<li><a href="{html_filename}">{filename}</a></li>')
         except: print("HTML File Creation Failed")
 
+#Index
 main_html_content = """<!doctype html>
 <html>
 <head>
