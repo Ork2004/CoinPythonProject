@@ -1,6 +1,7 @@
 import os
 import webbrowser
 import csv
+import numpy as np
 
 csv_folder = "csv"
 html_folder = "html"
@@ -17,11 +18,29 @@ for csv_filename in os.listdir(csv_folder):
             reader = csv.DictReader(file)
             rows = [row for row in reader]
 
-            high_values = [(row['Date'], float(row['High'])) for row in rows]
-            low_values = [(row['Date'], float(row['Low'])) for row in rows]
+            dates = [row['Date'] for row in rows]
+            highs = np.array([float(row['High']) for row in rows])
+            lows = np.array([float(row['Low']) for row in rows])
+            opens = np.array([float(row['Open']) for row in rows])
+            closes = np.array([float(row['Close']) for row in rows])
+            volumes = np.array([float(row['Volume']) for row in rows])
 
-            top_10_high = sorted(high_values, key=lambda x: x[1], reverse=True)[:10]
-            top_10_low = sorted(low_values, key=lambda x: x[1])[:10]
+            # Top 10 Highest/Lowest Valuses
+            top_10_high = sorted(zip(dates, highs), key=lambda x: x[1], reverse=True)[:10]
+            top_10_low = sorted(zip(dates, lows), key=lambda x: x[1])[:10]
+
+            #Average and Standard Deviation
+            avg_high = np.mean(highs)
+            std_high = np.std(highs)
+
+            avg_low = np.mean(lows)
+            std_low = np.std(lows)
+
+            avg_open = np.mean(opens)
+            std_open = np.std(opens)
+
+            avg_close = np.mean(closes)
+            std_close = np.std(closes)
 
         html_content = f"""<!doctype html>
 <html>
@@ -38,6 +57,18 @@ for csv_filename in os.listdir(csv_folder):
     <h2>Top 10 Lowest Lows</h2>
     <ul>
         {''.join([f"<li>Date: {low[0]}, Value: {low[1]}</li>" for low in top_10_low])}
+    </ul>
+    
+    <h2>Statistical Summary</h2>
+    <ul>
+        <li>Average High: {avg_high:.2f}</li>
+        <li>Standard Deviation of Highs: {std_high:.2f}</li>
+        <li>Average Low: {avg_low:.2f}</li>
+        <li>Standard Deviation of Lows: {std_low:.2f}</li>
+        <li>Average Open: {avg_open:.2f}</li>
+        <li>Standard Deviation of Opens: {std_open:.2f}</li>
+        <li>Average Close: {avg_close:.2f}</li>
+        <li>Standard Deviation of Closes: {std_close:.2f}</li>
     </ul>
 </body>
 </html>
