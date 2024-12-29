@@ -85,67 +85,87 @@ for csv_filename, data in csv_processor.files_data.items():
     graph_relative_path_ratios = os.path.relpath(graph_path_ratios, html_folder)
 
     html_content = f"""<!doctype html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <title>{filename}</title>
-    </head>
-    <body>
-        <h1>{filename}</h1>
-        <h2>Top 10 Highest Highs</h2>
-        <ul>
-            {''.join([f"<li>Date: {high[0]}, Time: {high[1]}, Value: {high[2]}</li>" for high in top_10_high[csv_filename]])}
-        </ul>
-        <h2>Top 10 Lowest Lows</h2>
-        <ul>
-            {''.join([f"<li>Date: {low[0]}, Time: {low[1]}, Value: {low[2]}</li>" for low in top_10_low[csv_filename]])}
-        </ul>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>{filename}</title>
+            <!-- Add Bootstrap CSS -->
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body>
+            <div class="container my-5">
+                <h1 class="display-4">{filename}</h1>
 
-        <h2>Statistical Summary</h2>
-        <ul>
-            <li>Average High: {stats[csv_filename]['avg_high']:.2f}</li>
-            <li>Standard Deviation of Highs: {stats[csv_filename]['std_high']:.2f}</li>
-            <li>Average Low: {stats[csv_filename]['avg_low']:.2f}</li>
-            <li>Standard Deviation of Lows: {stats[csv_filename]['std_low']:.2f}</li>
-            <li>Average Open: {stats[csv_filename]['avg_open']:.2f}</li>
-            <li>Standard Deviation of Opens: {stats[csv_filename]['std_open']:.2f}</li>
-            <li>Average Close: {stats[csv_filename]['avg_close']:.2f}</li>
-            <li>Standard Deviation of Closes: {stats[csv_filename]['std_close']:.2f}</li>
-        </ul>
-        
-        <h2>Trend and Seasonality Graphs</h2>
-        <h3>Close Price</h3>
-        <img src="{graph_relative_path_close}" alt="Close Price Trend and Seasonality Graph">
-        <h3>Open Price</h3>
-        <img src="{graph_relative_path_open}" alt="Open Price Trend and Seasonality Graph">
-        <h2>Volume-to-Marketcap Ratio Graph</h2>
-        <img src="{graph_relative_path_ratios}" alt="Volume-to-Marketcap Ratio Graph">
-    </body>
-    </html>
-    """
+                <h2 class="my-4">Top 10 Highest Highs</h2>
+                <ul class="list-group">
+                    {''.join([f"<li class='list-group-item'>Date: {high[0]}, Time: {high[1]}, Value: {high[2]}</li>" for high in top_10_high[csv_filename]])}
+                </ul>
+
+                <h2 class="my-4">Top 10 Lowest Lows</h2>
+                <ul class="list-group">
+                    {''.join([f"<li class='list-group-item'>Date: {low[0]}, Time: {low[1]}, Value: {low[2]}</li>" for low in top_10_low[csv_filename]])}
+                </ul>
+
+                <h2 class="my-4">Statistical Summary</h2>
+                <ul class="list-group">
+                    <li class="list-group-item">Average High: {stats[csv_filename]['avg_high']:.2f}</li>
+                    <li class="list-group-item">Standard Deviation of Highs: {stats[csv_filename]['std_high']:.2f}</li>
+                    <li class="list-group-item">Average Low: {stats[csv_filename]['avg_low']:.2f}</li>
+                    <li class="list-group-item">Standard Deviation of Lows: {stats[csv_filename]['std_low']:.2f}</li>
+                    <li class="list-group-item">Average Open: {stats[csv_filename]['avg_open']:.2f}</li>
+                    <li class="list-group-item">Standard Deviation of Opens: {stats[csv_filename]['std_open']:.2f}</li>
+                    <li class="list-group-item">Average Close: {stats[csv_filename]['avg_close']:.2f}</li>
+                    <li class="list-group-item">Standard Deviation of Closes: {stats[csv_filename]['std_close']:.2f}</li>
+                </ul>
+
+                <h2 class="my-4">Trend and Seasonality Graphs</h2>
+                <h3>Close Price</h3>
+                <img class="img-fluid" src="{graph_relative_path_close}" alt="Close Price Trend and Seasonality Graph">
+                <h3>Open Price</h3>
+                <img class="img-fluid" src="{graph_relative_path_open}" alt="Open Price Trend and Seasonality Graph">
+
+                <h2 class="my-4">Volume-to-Marketcap Ratio Graph</h2>
+                <img class="img-fluid" src="{graph_relative_path_ratios}" alt="Volume-to-Marketcap Ratio Graph">
+            </div>
+
+            <!-- Add Bootstrap JS -->
+            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+        </body>
+        </html>
+        """
 
     html_filename = filename + ".html"
     html_filepath = os.path.join(html_folder, html_filename)
     try:
         with open(html_filepath, "w", encoding="utf-8") as file:
             file.write(html_content)
-        links.append(f'<li><a href="{html_filename}">{filename}</a></li>')
+        links.append(f'<button onclick="window.location.href=\'{html_filename}\'" type="button" class="list-group-item list-group-item-action">{filename}</button>')
     except:
         print("HTML File Creation Failed")
 
 main_html_content = """<!doctype html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Index</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <h1>List of CSV files</h1>
-    <ul>
+
+    <div class="container mt-5">
+        <h1>List of CSV files</h1>
+        <div class="list-group">
 """
 main_html_content += "\n".join(links)
 main_html_content += """
-    </ul>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 """
