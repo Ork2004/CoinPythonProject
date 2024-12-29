@@ -12,11 +12,22 @@ links = []
 csv_processor = CSVProcessor(csv_folder)
 csv_processor.process_csv_files()
 
-top_10_high, top_10_low = csv_processor.get_top_10_high_low()
+top_10_high, top_10_low, timings = csv_processor.get_top_10_high_low()
 stats = csv_processor.get_statistics()
+trends_seasonality = csv_processor.analyze_trends_and_seasonality()
+
+for filename, timing in timings.items():
+    print(f"{filename}: {timing:.4f} seconds")
+fastest_file = min(timings, key=timings.get)
+slowest_file = max(timings, key=timings.get)
+
+print(f"Fastest file: {fastest_file}: {timings[fastest_file]:.4f} seconds")
+print(f"Slowest file: {slowest_file}: {timings[slowest_file]:.4f} seconds")
 
 for csv_filename, data in csv_processor.files_data.items():
     filename = csv_filename.replace(".csv", "")
+    trend = trends_seasonality[csv_filename]['trend']
+    seasonality = trends_seasonality[csv_filename]['seasonality']
 
     html_content = f"""<!doctype html>
     <html>
@@ -46,6 +57,11 @@ for csv_filename, data in csv_processor.files_data.items():
             <li>Average Close: {stats[csv_filename]['avg_close']:.2f}</li>
             <li>Standard Deviation of Closes: {stats[csv_filename]['std_close']:.2f}</li>
         </ul>
+        
+        <h2>Trend Analysis</h2>
+        <ul>{''.join([f"<li>Index: {i}, Trend: {trend[i]:.2f}</li>" if trend[i] is not None else "" for i in range(len(trend))])}</ul>
+        <h2>Seasonality Analysis</h2>
+        <ul>{''.join([f"<li>Index: {i}, Seasonality: {seasonality[i]:.2f}</li>" if seasonality[i] is not None else "" for i in range(len(seasonality))])}</ul>
     </body>
     </html>
     """
