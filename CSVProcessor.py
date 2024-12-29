@@ -60,10 +60,11 @@ class CSVProcessor:
             opens = np.array([float(row['Open']) for row in rows])
             closes = np.array([float(row['Close']) for row in rows])
             volumes = np.array([float(row['Volume']) for row in rows])
+            marketcaps = np.array([float(row['Marketcap']) for row in rows])
 
             self.files_data[csv_filename] = {
                 'dates': dates, 'times': times, 'highs': highs, 'lows': lows, 'opens': opens,
-                'closes': closes, 'volumes': volumes
+                'closes': closes, 'volumes': volumes, 'marketcaps': marketcaps
             }
 
     def extract_date_or_time(self, date_str, extract="both"):
@@ -136,13 +137,40 @@ class CSVProcessor:
 
         for filename, data in self.files_data.items():
             closes = data['closes']
-            moving_avg = self.calculate_moving_average(closes, window_size=7)
+            opens = data['opens']
 
-            seasonality = [closes[i] - moving_avg[i] if moving_avg[i] is not None else None for i in range(len(closes))]
+            moving_avg_closes = self.calculate_moving_average(closes, window_size=7)
+            seasonality_closes = [
+                closes[i] - moving_avg_closes[i] if moving_avg_closes[i] is not None else None
+                for i in range(len(closes))
+            ]
+
+            moving_avg_opens = self.calculate_moving_average(opens, window_size=7)
+            seasonality_opens = [
+                opens[i] - moving_avg_opens[i] if moving_avg_opens[i] is not None else None
+                for i in range(len(opens))
+            ]
 
             trends_seasonality[filename] = {
-                'trend': moving_avg,
-                'seasonality': seasonality
+                'trend_close': moving_avg_closes,
+                'seasonality_close': seasonality_closes,
+                'trend_open': moving_avg_opens,
+                'seasonality_open': seasonality_opens
             }
 
         return trends_seasonality
+
+    def calculate_volume_to_marketcap_ratio(self):
+        volume_to_marketcap_ratios = {}
+
+        for filename, data in self.files_data.items():
+            ratios = []
+            for volume, marketcap in zip(data['volumes'], data['marketcaps']):
+                if marketcap > 0:
+                    ratios.append(volume / marketcap)
+                else:
+                    ratios.append(None)
+
+            volume_to_marketcap_ratios[filename] = ratios
+
+        return volume_to_marketcap_ratios

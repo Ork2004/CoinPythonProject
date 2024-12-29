@@ -1,5 +1,6 @@
 import os
 import webbrowser
+import matplotlib.pyplot as plt
 
 from CSVProcessor import CSVProcessor
 
@@ -15,6 +16,7 @@ csv_processor.process_csv_files()
 top_10_high, top_10_low, timings = csv_processor.get_top_10_high_low()
 stats = csv_processor.get_statistics()
 trends_seasonality = csv_processor.analyze_trends_and_seasonality()
+volume_to_marketcap_ratios = csv_processor.calculate_volume_to_marketcap_ratio()
 
 for filename, timing in timings.items():
     print(f"{filename}: {timing:.4f} seconds")
@@ -24,10 +26,63 @@ slowest_file = max(timings, key=timings.get)
 print(f"Fastest file: {fastest_file}: {timings[fastest_file]:.4f} seconds")
 print(f"Slowest file: {slowest_file}: {timings[slowest_file]:.4f} seconds")
 
+
+def save_graph(data, trend, seasonality, filename, label, output_folder="graphs"):
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(range(len(data)), data, label=f"{label} Price", alpha=0.5)
+    if trend:
+        plt.plot(range(len(trend)), trend, label=f"{label} Trend", color="red")
+    if seasonality:
+        plt.plot(range(len(seasonality)), seasonality, label=f"{label} Seasonality", color="green")
+    plt.title(f"{label} Trend and Seasonality Analysis for {filename}")
+    plt.xlabel("Index")
+    plt.ylabel("Value")
+    plt.legend()
+    graph_filename = os.path.join(output_folder, f"{filename}_{label.lower()}_trend_seasonality.png")
+    plt.savefig(graph_filename)
+    plt.close()
+    return graph_filename
+
+
+def save_volume_to_marketcap_graph(ratios, filename, output_folder="graphs"):
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(range(len(ratios)), ratios, label="Volume-to-Marketcap Ratio", color="blue", alpha=0.7)
+    plt.title(f"Volume-to-Marketcap Ratio for {filename}")
+    plt.xlabel("Index")
+    plt.ylabel("V/M Ratio")
+    plt.legend()
+
+    graph_filename = os.path.join(output_folder, f"{filename}_volume_to_marketcap.png")
+    plt.savefig(graph_filename)
+    plt.close()
+
+    return graph_filename
+
 for csv_filename, data in csv_processor.files_data.items():
     filename = csv_filename.replace(".csv", "")
-    trend = trends_seasonality[csv_filename]['trend']
-    seasonality = trends_seasonality[csv_filename]['seasonality']
+
+    trend_close = trends_seasonality[csv_filename]['trend_close']
+    seasonality_close = trends_seasonality[csv_filename]['seasonality_close']
+
+    trend_open = trends_seasonality[csv_filename]['trend_open']
+    seasonality_open = trends_seasonality[csv_filename]['seasonality_open']
+
+    graph_filepath_close = save_graph(data['closes'], trend_close, seasonality_close, filename, "Close")
+    graph_filepath_open = save_graph(data['opens'], trend_open, seasonality_open, filename, "Open")
+
+    graph_relative_path_close = os.path.relpath(graph_filepath_close, html_folder)
+    graph_relative_path_open = os.path.relpath(graph_filepath_open, html_folder)
+
+    ratios = volume_to_marketcap_ratios[csv_filename]
+
+    graph_path_ratios = save_volume_to_marketcap_graph(ratios, filename)
+    graph_relative_path_ratios = os.path.relpath(graph_path_ratios, html_folder)
 
     html_content = f"""<!doctype html>
     <html>
@@ -58,10 +113,13 @@ for csv_filename, data in csv_processor.files_data.items():
             <li>Standard Deviation of Closes: {stats[csv_filename]['std_close']:.2f}</li>
         </ul>
         
-        <h2>Trend Analysis</h2>
-        <ul>{''.join([f"<li>Index: {i}, Trend: {trend[i]:.2f}</li>" if trend[i] is not None else "" for i in range(len(trend))])}</ul>
-        <h2>Seasonality Analysis</h2>
-        <ul>{''.join([f"<li>Index: {i}, Seasonality: {seasonality[i]:.2f}</li>" if seasonality[i] is not None else "" for i in range(len(seasonality))])}</ul>
+        <h2>Trend and Seasonality Graphs</h2>
+        <h3>Close Price</h3>
+        <img src="{graph_relative_path_close}" alt="Close Price Trend and Seasonality Graph">
+        <h3>Open Price</h3>
+        <img src="{graph_relative_path_open}" alt="Open Price Trend and Seasonality Graph">
+        <h2>Volume-to-Marketcap Ratio Graph</h2>
+        <img src="{graph_relative_path_ratios}" alt="Volume-to-Marketcap Ratio Graph">
     </body>
     </html>
     """
